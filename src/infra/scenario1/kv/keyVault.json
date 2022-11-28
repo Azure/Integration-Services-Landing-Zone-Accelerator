@@ -1,0 +1,82 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyVault": {
+            "type": "object"
+        },
+        "vNet": {
+            "type": "object"
+        },
+        "platform": {
+            "type": "object"
+        }
+
+    },
+    "variables": {
+        "pepName": "[concat('pep-',parameters('platform').systemPrefix,'-kv-',parameters('platform').environment,'-',parameters('platform').region,'-01')]",
+        "pepNicName": "[concat('nic-',parameters('platform').systemPrefix,'-kv-',parameters('platform').environment,'-',parameters('platform').region,'-01')]"
+
+    },
+    "resources": [
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2021-10-01",
+            "name": "[parameters('keyVault').name]",
+            "location": "[parameters('platform').region]",
+            "properties": {
+                "enableRbacAuthorization": true,
+                "publicNetworkAccess": "Disabled",
+                "tenantId": "[tenant().tenantId]",
+                "sku": {
+                    "family": "A",
+                    "name": "[parameters('keyVault').sku]"
+                },
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "defaultAction": "Deny",
+                    "ipRules": [],
+                    "virtualNetworkRules": [
+/*
+                        {
+                            "id": "[concat(parameters('virtualnetworks_vnet_ais_dev_uksouth_01_externalid'), '/subnets/snet-ais-frontend-dev-uksouth-01')]",
+                            "ignoreMissingVnetServiceEndpoint": false
+                        },
+                        {
+                            "id": "[concat(parameters('virtualnetworks_vnet_ais_dev_uksouth_01_externalid'), '/subnets/snet-ais-backend-dev-uksouth-01')]",
+                            "ignoreMissingVnetServiceEndpoint": false
+                        }
+*/
+                    ]
+                }
+
+            }
+        },
+        {
+            "location": "[parameters('platform').region]",
+            "name": "[variables('pepName')]",
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2021-05-01",
+            "properties": {
+                "subnet": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('vnet').name, parameters('vnet').privateLink.name)]"
+                },
+                "customNetworkInterfaceName": "[variables('pepNicName')]",
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[variables('pepName')]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.KeyVault/vaults',parameters('keyVault').name)]",
+                            "groupIds": [ "vault" ]
+                        }
+                    }
+                ]
+            },
+            "tags": {},
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults',parameters('keyVault').name)]"
+
+            ]
+        }
+    ]
+}

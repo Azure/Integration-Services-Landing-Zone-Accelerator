@@ -1,0 +1,35 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+   "parameters": {
+        "vNet": {
+            "type": "object"
+        },
+        "platform": {
+            "type": "object"
+        },
+        "appInsights": {
+            "type": "object"
+        },
+        "logAnalytics": {
+            "type": "object"
+        }
+    },
+    "variables": {},
+    "functions": [],
+    "resources": [
+        {
+            "type": "microsoft.insights/components",
+            "apiVersion": "2020-02-02",
+            "name": "[parameters('appInsights').name]",
+            "location": "[resourceGroup().location]",
+            "kind": "web",
+            "properties": {
+                "ApplicationId": "[parameters('appInsights').name]",                
+                "WorkspaceResourceId": "[resourceId('microsoft.operationalinsights/workspaces', parameters('logAnalytics').name)]"
+            }
+           
+        }
+    ],
+    "outputs": {}
+}

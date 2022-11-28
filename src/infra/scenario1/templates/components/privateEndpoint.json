@@ -1,0 +1,78 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "privateEndpointName": {
+            "type": "String"
+        },
+        "privateEndpointResource": {
+            "type": "String"
+        },
+        "privateEndpointSubnet": {
+            "type": "String"
+        },
+        "privateEndpointVNET": {
+            "type": "String"
+        },
+        "privateEndpointVNETResourcegroup": {
+            "type": "String"
+        },
+        "privateEndpointGroupID": {
+            "type": "String"
+        },
+        "privateDnsZoneName": {
+            "type": "String"
+        },
+        "privateDnsResourceGroup": {
+            "type": "String"
+        },
+        "privateDnsSubscriptionID": {
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('privateEndpointName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "subnet": {
+                    "id": "[resourceId(parameters('privateEndpointVNETResourcegroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('privateEndpointVNET'), parameters('privateEndpointSubnet'))]"
+                },
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[parameters('privateEndpointName')]",
+                        "properties": {
+                            "privateLinkServiceId": "[parameters('privateEndpointResource')]",
+                            "groupIds": [
+                                "[parameters('privateEndpointGroupID')]"
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('privateEndpointName'), '/default')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateEndpoints/', parameters('privateEndpointName'))]"
+            ],
+            "properties": {
+                "privateDnsZoneConfigs": [
+                    {
+                        "name": "config1",
+                        "properties": {
+                            "privateDnsZoneId": "[resourceId(parameters('privateDnsSubscriptionID'),parameters('privateDnsResourceGroup'), 'Microsoft.Network/privateDnsZones', parameters('privateDnsZoneName'))]"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}

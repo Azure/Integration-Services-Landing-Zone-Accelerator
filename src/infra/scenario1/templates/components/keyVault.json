@@ -1,0 +1,105 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyVaultName": {
+            "type": "String"
+        },
+        "keyVaultSKUName": {
+            "defaultValue": "Standard",
+            "type": "String"
+        },
+        "keyVaultSKUFamily": {
+            "defaultValue": "A",
+            "type": "String"
+        },
+        "enabledForDeployment": {
+            "defaultValue": false,
+            "type": "Bool",
+            "metadata": {
+                "description": "Property to specify whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the key vault."
+            }
+        },
+        "enabledForDiskEncryption": {
+            "defaultValue": false,
+            "type": "Bool",
+            "metadata": {
+                "description": "Property to specify whether Azure Disk Encryption is permitted to retrieve secrets from the vault and unwrap keys."
+            }
+        },
+        "enabledForTemplateDeployment": {
+            "defaultValue": false,
+            "type": "Bool",
+            "metadata": {
+                "description": "Property to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault."
+            }
+        },
+        "enableRbacAuthorization": {
+            "defaultValue": true,
+            "type": "Bool",
+            "metadata": {
+                "description": "Property that controls how data actions are authorized. When true, the key vault will use Role Based Access Control (RBAC) for authorization of data actions, and the access policies specified in vault properties will be ignored. When false, the key vault will use the access policies specified in vault properties, and any policy stored on Azure Resource Manager will be ignored. ."
+            }
+        },
+        "tenantId": {
+            "type": "String"
+        },
+        "enableSoftDelete": {
+            "defaultValue": true,
+            "type": "Bool",
+            "metadata": {
+                "description": "Property to specify whether the 'soft delete' functionality is enabled for this key vault."
+            }
+        },
+        "softDeleteRetentionInDays": {
+            "defaultValue": "90",
+            "type": "String",
+            "metadata": {
+                "description": "softDelete data retention days. It accepts }=7 and {=90."
+            }
+        },
+        "enablePurgeProtection": {
+            "defaultValue": true,
+            "type": "Bool",
+            "metadata": {
+                "description": "Property specifying whether protection against purge is enabled for this vault. Setting this property to true activates protection against purge for this vault and its content - only the Key Vault service may initiate a hard, irrecoverable deletion. The setting is effective only if soft delete is also enabled."
+            }
+        },
+        "keyVaultFirewallDefaultAction": {
+            "defaultValue": "deny",
+            "type": "String"
+        },
+        "keyVaultFirewallBypass": {
+            "defaultValue": "None",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2019-09-01",
+            "name": "[parameters('keyVaultName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "enabledForDeployment": "[parameters('enabledForDeployment')]",
+                "enabledForTemplateDeployment": "[parameters('enabledForTemplateDeployment')]",
+                "enabledForDiskEncryption": "[parameters('enabledForDiskEncryption')]",
+                "enableRbacAuthorization": "[parameters('enableRbacAuthorization')]",
+                "tenantId": "[parameters('tenantId')]",
+                "sku": {
+                    "name": "[parameters('keyVaultSKUName')]",
+                    "family": "[parameters('keyVaultSKUFamily')]"
+                },
+                "enableSoftDelete": "[parameters('enableSoftDelete')]",
+                "enablePurgeProtection": "[parameters('enablePurgeProtection')]",
+                "softDeleteRetentionInDays": "[parameters('softDeleteRetentionInDays')]",
+                "networkAcls": {
+                    "bypass": "[parameters('keyVaultFirewallBypass')]",
+                    "defaultAction": "[parameters('keyVaultFirewallDefaultAction')]"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

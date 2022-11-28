@@ -1,0 +1,175 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "systemPrefix": {
+            "type": "string",
+            "defaultValue": "ais",
+            "metadata": {
+                "description": "System prefix used in naming resources"
+            }
+        },
+        "environment": {
+            "type": "string",
+            "defaultValue": "dev",
+            "allowedValues": [ "dev", "uat", "prod" ],
+            "metadata": {
+                "description": "Type of environment"
+            }
+        },
+        "vnetAddressSpace": {
+            "type": "string",
+            "defaultValue": "192.168.0.0/16",
+            "metadata": {
+                "description": "CIDR prefix for the VNet address space."
+            }
+        },
+        "frontEndSubnet": {
+            "type": "string",
+            "defaultValue": "192.168.1.0/24",
+            "metadata": {
+                "description": "CIDR address prefix for the front end subnet."
+            }
+        },
+        "backEndSubnet": {
+            "type": "string",
+            "defaultValue": "192.168.2.0/24",
+            "metadata": {
+                "description": "CIDR address prefix for the back end subnet."
+            }
+        },
+        "privateLinkSubnet": {
+            "type": "string",
+            "defaultValue": "192.168.10.0/24",
+            "metadata": {
+                "description": "CIDR address prefix for the private link."
+            }
+        },
+        "apimAdminEmail": {
+            "type": "string",
+            "defaultValue": "admin@domain.com",
+            "metadata": {
+                "description": "API Mangement Administrator Email"
+            }
+        },
+        "apimOrganisation": {
+            "type": "string",
+            "defaultValue": "Organisation",
+            "metadata": {
+                "description": "API Mangement Organsiation Name"
+            }
+        }
+    },
+
+    "variables": {
+        "platform": {
+            "systemPrefix": "[parameters('systemPrefix')]",
+            "environment": "[parameters('environment')]",
+            "region": "[resourceGroup().location]"
+        },
+
+        "nameSuffix": "[concat('-',parameters('systemPrefix'),'-',parameters('environment'),'-',variables('platform').region,'-01')]",
+
+        "keyVault": {
+            "name": "[concat('kv-',variables('platform').systemPrefix,'-',variables('platform').environment,'-',variables('platform').region,'-01')]"
+        },
+
+        "storage": {
+            "name": "[concat('stg',variables('platform').systemPrefix, variables('platform').environment,uniqueString(resourceGroup().id))]"
+        },
+        "logicApp": {
+            "name": "[concat('logic',variables('nameSuffix'))]"
+        },
+        "apim": {
+            "name": "[concat('apim',variables('nameSuffix'))]",
+            "tier": "Developer",
+            "capacity": "1",
+            "identity": "None",
+            "adminEmail": "[parameters('apimAdminEmail')]",
+            "organisation": "[parameters('apimOrganisation')]"
+
+        },
+
+        "serviceBusName": "[concat('sbus',variables('nameSuffix'))]",
+
+        "vNet": {
+            "name": "[concat('vnet',variables('nameSuffix'))]",
+            "address": "[parameters('vnetAddressSpace')]",
+            "frontEnd": {
+                "name": "[concat('snet-',parameters('systemPrefix'),'-frontend-',parameters('environment'),'-',variables('platform').region,'-01')]",
+                "nsg": "[concat('nsg-',parameters('systemPrefix'),'-frontend-',parameters('environment'),'-',variables('platform').region,'-01')]",
+                "address": "[parameters('frontEndSubnet')]"
+            },
+            "backEnd": {
+                "name": "[concat('snet-',parameters('systemPrefix'),'-backend-',parameters('environment'),'-',variables('platform').region,'-01')]",
+                "nsg": "[concat('nsg-',parameters('systemPrefix'),'-backend-',parameters('environment'),'-',variables('platform').region,'-01')]",
+                "address": "[parameters('backEndSubnet')]"
+            },
+            "privateLink": {
+                "name": "[concat('snet-',parameters('systemPrefix'),'-privatelink-',parameters('environment'),'-',variables('platform').region,'-01')]",
+                "address": "[parameters('privateLinkSubnet')]"
+            }
+        }
+
+    },
+
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "caf-ais-vnet",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'templates/vnet/vnet.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vNet": {
+                        "value": "[variables('vNet')]"
+                    }
+
+
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "name": "caf-ais-key-vault-with-pe",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'templates/kv/keyVaultWithPE.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[variables('keyVault').name]"
+                    },
+                    "keyVaultTenantId": {
+                        "value": "[subscription().tenantId]"
+                    },
+                    "privateEndpointSubnet": {
+                        "value": "[variables('vNet').privateLink.name]"
+                    },
+                    "privateEndpointVNET": {
+                        "value": "[variables('vNet').name]"
+                    },
+                    "privateEndpointVNETResourcegroup": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "privateDnsResourceGroup": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "privateDnsSubscriptionID": {
+                        "value": "[subscription().id]"
+                    }
+                }
+            }
+        }
+
+    ],
+    "outputs": {
+    }
+}

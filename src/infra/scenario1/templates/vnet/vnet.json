@@ -1,0 +1,143 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"vNet":{
+			"type": "object"
+		}
+	},
+	"variables": {
+	},
+	"resources": [
+		{
+			"apiVersion": "2015-06-15",
+			"type": "Microsoft.Network/networkSecurityGroups",
+			"name": "[parameters('vNet').frontEnd.nsg]",
+			"location": "[resourceGroup().location]",
+			"tags": {
+				"displayName": "NSG - Remote Access"
+			},
+			"properties": {
+				"securityRules": [
+					{
+						"name": "allow-frontend",
+						"properties": {
+							"description": "Allow FE Subnet",
+							"protocol": "Tcp",
+							"sourcePortRange": "*",
+							"destinationPortRange": "1433",
+							"sourceAddressPrefix": "[parameters('vNet').frontEnd.address]",
+							"destinationAddressPrefix": "*",
+							"access": "Allow",
+							"priority": 100,
+							"direction": "Inbound"
+						}
+					},
+					{
+						"name": "block-internet",
+						"properties": {
+							"description": "Block Internet",
+							"protocol": "*",
+							"sourcePortRange": "*",
+							"destinationPortRange": "*",
+							"sourceAddressPrefix": "*",
+							"destinationAddressPrefix": "Internet",
+							"access": "Deny",
+							"priority": 200,
+							"direction": "Outbound"
+						}
+					}
+				]
+			}
+		},
+		{
+			"apiVersion": "2015-06-15",
+			"type": "Microsoft.Network/networkSecurityGroups",
+			"name": "[parameters('vNet').backEnd.nsg]",
+			"location": "[resourceGroup().location]",
+			"tags": {
+				"displayName": "NSG - Front End"
+			},
+			"properties": {
+				"securityRules": [
+					{
+						"name": "rdp-rule",
+						"properties": {
+							"description": "Allow RDP",
+							"protocol": "Tcp",
+							"sourcePortRange": "*",
+							"destinationPortRange": "3389",
+							"sourceAddressPrefix": "Internet",
+							"destinationAddressPrefix": "*",
+							"access": "Allow",
+							"priority": 100,
+							"direction": "Inbound"
+						}
+					},
+					{
+						"name": "web-rule",
+						"properties": {
+							"description": "Allow WEB",
+							"protocol": "Tcp",
+							"sourcePortRange": "*",
+							"destinationPortRange": "80",
+							"sourceAddressPrefix": "Internet",
+							"destinationAddressPrefix": "*",
+							"access": "Allow",
+							"priority": 101,
+							"direction": "Inbound"
+						}
+					}
+				]
+			}
+		},
+		{
+			"apiVersion": "2015-06-15",
+			"type": "Microsoft.Network/virtualNetworks",
+			"name": "[parameters('vNet').name]",
+			"location": "[resourceGroup().location]",
+			"dependsOn": [
+				"[concat('Microsoft.Network/networkSecurityGroups/', parameters('vNet').frontEnd.nsg)]",
+				"[concat('Microsoft.Network/networkSecurityGroups/', parameters('vNet').backEnd.nsg)]"
+				
+				
+			],
+			"tags": {
+				"displayName": "VNet"
+			},
+			"properties": {
+				"addressSpace": {
+					"addressPrefixes": [
+						"[parameters('vnet').address]"
+					]
+				},
+				"subnets": [
+					{
+						"name": "[parameters('vNet').frontEnd.name]",
+						"properties": {
+							"addressPrefix": "[parameters('vNet').frontEnd.address]",
+							"networkSecurityGroup": {
+								"id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('vNet').frontEnd.nsg)]"
+							}
+						}
+					},
+					{
+						"name": "[parameters('vNet').backEnd.name]",
+						"properties": {
+							"addressPrefix": "[parameters('vNet').backEnd.address]",
+							"networkSecurityGroup": {
+								"id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('vNet').backEnd.nsg)]"
+							}
+						}
+					},
+					{
+						"name": "[parameters('vNet').privateLink.name]",
+						"properties": {
+							"addressPrefix": "[parameters('vNet').privateLink.address]"
+						}
+					}
+				]
+			}
+		}
+	]
+}

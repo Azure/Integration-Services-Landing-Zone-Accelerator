@@ -1,0 +1,79 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vNet": {
+            "type": "object"
+        },
+        "platform": {
+            "type": "object"
+        },
+        "storage": {
+            "type": "object"
+        },
+        "dataFactory": {
+            "type": "object"
+        },
+        "appInsights": {
+            "type": "object"
+        }
+
+
+    },
+    "functions": [],
+    "variables": {
+    },
+    "resources": [
+        {
+            "type": "Microsoft.DataFactory/factories",
+            "apiVersion": "2018-06-01",
+            "name": "[parameters('dataFactory').name]",
+            "location": "[parameters('platform').region]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties":{
+                "publicNetworkAccess": "Disabled"
+            }
+        }, 
+        {
+            "location": "[parameters('platform').region]",
+            "name": "[concat('pep-',parameters('platform').systemPrefix,'-df-',parameters('platform').environment,'-',parameters('platform').region,'-01')]",
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2021-05-01",
+            "properties": {
+                "subnet": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('vnet').name, parameters('vnet').privateLink.name)]"
+                },
+                "customNetworkInterfaceName": "[concat('nic-',parameters('platform').systemPrefix,'-df-',parameters('platform').environment,'-',parameters('platform').region,'-01')]",
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[concat('pep-',parameters('platform').systemPrefix,'-df-',parameters('platform').environment,'-',parameters('platform').region,'-01')]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.DataFactory/factories',parameters('dataFactory').name)]",
+                            "groupIds": [ "dataFactory" ]
+                        }
+                    }
+                ]
+            },
+            "tags": {},
+            "dependsOn": [
+                "[resourceId('Microsoft.DataFactory/factories',parameters('dataFactory').name)]"
+
+            ]
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "2018-09-01",
+            "name": "[string('privatelink.datafactory.azure.net')]",
+            "location": "global",
+            "tags": {},
+            "properties": {},
+            "dependsOn": [
+                "[concat('pep-',parameters('platform').systemPrefix,'-df-',parameters('platform').environment,'-',parameters('platform').region,'-01')]"
+            ]
+
+        }
+    ],
+    "outputs": {}
+}

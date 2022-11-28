@@ -1,0 +1,162 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2021-09-09/uiFormDefinition.schema.json",
+    "view": {
+        "kind": "Form",
+        "properties": {
+            "title": "CAF AIS Reference Architecture Deployment",
+            "steps": [
+                {
+                    "name": "env",
+                    "label": "Environment",
+                    "elements": [
+                        {
+                            "name": "environment",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Environment",
+                            "defaultValue": "dev",
+                            "toolTip": "",
+                            "constraints": {
+                                "required": false,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "resourceScope",
+                            "type": "Microsoft.Common.ResourceScope",
+                            "location": {
+                                "resourceTypes": [
+                                    "microsoft.network/networksecuritygroups",
+                                    "microsoft.network/virtualnetworks",
+                                    "microsoft.resources/resourcegroups"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "regionId",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Region Id",
+                            "defaultValue": "uksouth",
+                            "toolTip": "",
+                            "constraints": {
+                                "required": false,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        }
+                    ]
+                },
+                {
+                    "name": "vNet",
+                    "label": "Virtual Network",
+                    "elements": [
+                       
+                        
+                        {
+                            "name": "vnetAddressSpace",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Vnet Prefix",
+                            "defaultValue": "192.168.0.0/16",
+                            "toolTip": "CIDR prefix for the VNet address space.",
+                            "constraints": {
+                                "required": false,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "frontEndSubnetPrefix",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Front End Subnet Prefix",
+                            "defaultValue": "192.168.1.0/24",
+                            "toolTip": "CIDR address prefix for the front end subnet.",
+                            "constraints": {
+                                "required": false,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        },
+                        {
+                            "name": "backEndSubnetPrefix",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "Back End Subnet Prefix",
+                            "defaultValue": "192.168.2.0/24",
+                            "toolTip": "CIDR address prefix for the back end subnet.",
+                            "constraints": {
+                                "required": false,
+                                "regex": "",
+                                "validationMessage": ""
+                            },
+                            "visible": true
+                        }
+                    ]
+                },
+                {
+                    "name": "storage",
+                    "label": "Storage Account",
+                    "elements": []
+                },
+                {
+                    "name": "apim",
+                    "label": "API Management",
+                    "elements": []
+                },
+                {
+                    "name": "sb",
+                    "label": "Service Bus",
+                    "elements": [
+
+                        {
+                            "name": "sbtier",
+                            "type": "Microsoft.Common.DropDown",
+                            "label": "Tier",
+                            "placeholder": "",
+                            "defaultValue": "Standard",
+                            "toolTip": "",
+                            "multiselect": false,
+                            "selectAll": true,
+                            "filter": true,
+                            "filterPlaceholder": "Filter items ...",
+                            "multiLine": true,
+                            "defaultDescription": "Select tier",
+                            "constraints": {
+                                "allowedValues": [
+                                    {
+                                        "label": "Standard",
+                                        "description": "Standard Tier.",
+                                        "value": "Standard"
+                                    },
+                                    {
+                                        "label": "Premium",
+                                        "description": "Premium Tier",
+                                        "value": "Premium"
+                                    }
+                                ],
+                                "required": true
+                            },
+                            "visible": true
+                        }
+
+                    ]
+                }
+            ]
+        },
+        "outputs": {
+            "parameters": {
+                "environment": "[steps('env').environment]",
+                "vnetAddressSpace": "[steps('vNet').vnetAddressSpace]",
+                "frontEndSubnetPrefix": "[steps('vNet').frontEndSubnetPrefix]",
+                "backEndSubnetPrefix": "[steps('vNet').backEndSubnetPrefix]",
+                "regionId": "[steps('env').regionId]",
+                "tier":"[steps('sb').sbtier]"
+            },
+            "kind": "ResourceGroup",
+            "location": "[steps('env').resourceScope.location.name]",
+            "resourceGroupId": "[steps('env').resourceScope.resourceGroup.id]"
+        }
+    }
+}

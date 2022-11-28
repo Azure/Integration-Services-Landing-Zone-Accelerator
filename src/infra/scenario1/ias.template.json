@@ -1,0 +1,422 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "systemPrefix": {
+            "type": "string",
+            "defaultValue": "ais",
+            "metadata": {
+                "description": "System prefix used in naming resources"
+            }
+        },
+        "environment": {
+            "type": "string",
+            "defaultValue": "dev",
+            "allowedValues": [ "dev", "uat", "prod" ],
+            "metadata": {
+                "description": "Type of environment"
+            }
+        },
+        "vnetAddressSpace": {
+            "type": "string",
+            "defaultValue": "192.168.0.0/16",
+            "metadata": {
+                "description": "CIDR prefix for the VNet address space."
+            }
+        },
+        "frontEndSubnet": {
+            "type": "string",
+            "defaultValue": "192.168.1.0/24",
+            "metadata": {
+                "description": "CIDR address prefix for the front end subnet."
+            }
+        },
+        "backEndSubnet": {
+            "type": "string",
+            "defaultValue": "192.168.2.0/24",
+            "metadata": {
+                "description": "CIDR address prefix for the back end subnet."
+            }
+        },
+        "privateLinkSubnet": {
+            "type": "string",
+            "defaultValue": "192.168.10.0/24",
+            "metadata": {
+                "description": "CIDR address prefix for the private link."
+            }
+        },
+        "VMSubnet": {
+            "type": "string",
+            "defaultValue": "192.168.20.0/24",
+            "metadata": {
+                "description": "CIDR address prefix for the IaaS VM's."
+            }
+        },
+        "apimAdminEmail": {
+            "type": "string",
+            "defaultValue": "admin@domain.com",
+            "metadata": {
+                "description": "API Mangement Administrator Email"
+            }
+        },
+        "apimOrganisation": {
+            "type": "string",
+            "defaultValue": "Organisation",
+            "metadata": {
+                "description": "API Mangement Organsiation Name"
+            }
+        }
+    },
+
+    "variables": {
+        "platform": {
+            "systemPrefix": "[parameters('systemPrefix')]",
+            "environment": "[parameters('environment')]",
+            "region": "[resourceGroup().location]"
+        },
+
+        "nameSuffix": "[concat('-',parameters('systemPrefix'),'-',parameters('environment'),'-',variables('platform').region,'-01')]",
+
+        "storage": {
+            "name": "[concat('stg',variables('platform').systemPrefix, variables('platform').environment,uniqueString(resourceGroup().id))]"
+        },
+        "logicApp": {
+            "name": "[concat('logic',variables('nameSuffix'))]"
+        },
+        "funcApp": {
+            "name": "[concat('func',variables('nameSuffix'))]"
+        },
+        "dataFactory": {
+            "name": "[concat('df',variables('nameSuffix'))]"
+        },
+        "keyVault": {
+            "name": "[concat('kv',variables('nameSuffix'))]",
+            "sku": "Standard"
+        },
+
+        "logAnalytics": {
+            "name": "[concat('log',variables('nameSuffix'))]"
+        },
+
+        "appInsights": {
+            "name": "[concat('appi',variables('nameSuffix'))]"
+        },
+
+        "apim": {
+            "name": "[concat('apim',variables('nameSuffix'))]",
+            "tier": "Developer",
+            "capacity": "1",
+            "identity": "None",
+            "adminEmail": "[parameters('apimAdminEmail')]",
+            "organisation": "[parameters('apimOrganisation')]"
+
+        },
+
+        "serviceBus": {
+            "name": "[concat('sbus',variables('nameSuffix'))]",
+            "sku": "Premium"
+        },
+
+
+        "vNet": {
+            "name": "[concat('vnet',variables('nameSuffix'))]",
+            "address": "[parameters('vnetAddressSpace')]",
+            "frontEnd": {
+                "name": "[concat('snet-',parameters('systemPrefix'),'-frontend-',parameters('environment'),'-',variables('platform').region,'-01')]",
+                "nsg": "[concat('nsg-',parameters('systemPrefix'),'-frontend-',parameters('environment'),'-',variables('platform').region,'-01')]",
+                "address": "[parameters('frontEndSubnet')]"
+            },
+            "backEnd": {
+                "name": "[concat('snet-',parameters('systemPrefix'),'-backend-',parameters('environment'),'-',variables('platform').region,'-01')]",
+                "nsg": "[concat('nsg-',parameters('systemPrefix'),'-backend-',parameters('environment'),'-',variables('platform').region,'-01')]",
+                "address": "[parameters('backEndSubnet')]"
+            },
+            "privateLink": {
+                "name": "[concat('snet-',parameters('systemPrefix'),'-privatelink-',parameters('environment'),'-',variables('platform').region,'-01')]",
+                "address": "[parameters('privateLinkSubnet')]"
+            },
+            "VM": {
+                "name": "[concat('snet-',parameters('systemPrefix'),'-vm-',parameters('environment'),'-',variables('platform').region,'-01')]",
+                "address": "[parameters('VMSubnet')]"
+            }
+        }
+
+    },
+
+    // TODO: Once all resources deployed, disable public access to
+    //    1) Storage account.
+
+    "resources": [
+        // Key vault 
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "caf-ais-keyvault",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'kv/keyVault.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "platform": {
+                        "value": "[variables('platform')]"
+                    },
+                    "vNet": {
+                        "value": "[variables('vNet')]"
+                    },
+                    "keyVault": {
+                        "value": "[variables('keyVault')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'caf-ais-vnet')]"
+            ]
+        },
+
+        // VNET
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "caf-ais-vnet",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'vnet/vNet.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vNet": {
+                        "value": "[variables('vNet')]"
+                    }
+
+
+                }
+            }
+        },
+        // Service Bus
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "caf-ais-servicebus",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'sbus/serviceBus.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "platform": {
+                        "value": "[variables('platform')]"
+                    },
+                    "vNet": {
+                        "value": "[variables('vNet')]"
+                    },
+                    "serviceBus": {
+                        "value": "[variables('serviceBus')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'caf-ais-vnet')]"
+            ]
+        },
+        // Logic Apps
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "caf-ais-logicapp",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'la/logicApp.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "platform": {
+                        "value": "[variables('platform')]"
+                    },
+                    "vNet": {
+                        "value": "[variables('vNet')]"
+                    },
+                    "storage": {
+                        "value": "[variables('storage')]"
+                    },
+                    "logicApp": {
+                        "value": "[variables('logicApp')]"
+                    },
+                    "appInsights": {
+                        "value": "[variables('appInsights')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'caf-ais-vnet')]",
+                "[resourceId('Microsoft.Resources/deployments', 'caf-ais-app-insights')]"
+            ]
+        },
+        // Function  Apps
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "caf-ais-funcapp",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'func/funcApp.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "platform": {
+                        "value": "[variables('platform')]"
+                    },
+                    "vNet": {
+                        "value": "[variables('vNet')]"
+                    },
+                    "storage": {
+                        "value": "[variables('storage')]"
+                    },
+                    "funcApp": {
+                        "value": "[variables('funcApp')]"
+                    },
+                    "appInsights": {
+                        "value": "[variables('appInsights')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'caf-ais-vnet')]",
+                "[resourceId('Microsoft.Resources/deployments', 'caf-ais-app-insights')]",
+                "[resourceId('Microsoft.Resources/deployments', 'caf-ais-logicapp')]"
+            ]
+        },
+
+        // Data Factory
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "caf-ais-dataFactory",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'df/dataFactory.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "platform": {
+                        "value": "[variables('platform')]"
+                    },
+                    "vNet": {
+                        "value": "[variables('vNet')]"
+                    },
+                    "storage": {
+                        "value": "[variables('storage')]"
+                    },
+                    "dataFactory": {
+                        "value": "[variables('dataFactory')]"
+                    },
+                    "appInsights": {
+                        "value": "[variables('appInsights')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'caf-ais-vnet')]",
+                "[resourceId('Microsoft.Resources/deployments', 'caf-ais-app-insights')]"
+
+            ]
+        },
+
+
+        // apim
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "caf-ais-apim",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'apim/template.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "platform": {
+                        "value": "[variables('platform')]"
+                    },
+                    "vNet": {
+                        "value": "[variables('vNet')]"
+                    },
+                    "apim": {
+                        "value": "[variables('apim')]"
+                    }
+
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'caf-ais-vnet')]"
+            ]
+        },
+        // log analytics
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "caf-ais-log-analytics",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'log/logAnalytics.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "platform": {
+                        "value": "[variables('platform')]"
+                    },
+                    "vNet": {
+                        "value": "[variables('vNet')]"
+                    },
+                    "logAnalytics": {
+                        "value": "[variables('logAnalytics')]"
+                    }
+
+                }
+            }
+        },
+        // application insights
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "caf-ais-app-insights",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'log/appInsights.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "platform": {
+                        "value": "[variables('platform')]"
+                    },
+                    "vNet": {
+                        "value": "[variables('vNet')]"
+                    },
+                    "appInsights": {
+                        "value": "[variables('appInsights')]"
+                    },
+                    "logAnalytics": {
+                        "value": "[variables('logAnalytics')]"
+                    }
+
+                }
+
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'caf-ais-log-analytics')]"
+            ]
+
+        }
+
+    ],
+    "outputs": {
+    }
+}

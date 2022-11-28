@@ -1,0 +1,79 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"serviceBus": {
+			"type": "object"
+		},		
+		"vNet": {
+            "type": "object"
+        },
+        "platform": {
+            "type": "object"
+        }
+		
+	},
+	 "variables": {
+        "pepName": "[concat('pep-',parameters('platform').systemPrefix,'-sbus-',parameters('platform').environment,'-',parameters('platform').region,'-01')]",
+        "pepNicName": "[concat('nic-',parameters('platform').systemPrefix,'-sbus-',parameters('platform').environment,'-',parameters('platform').region,'-01')]"
+
+    },
+	"resources": [
+		{
+			"type": "Microsoft.ServiceBus/namespaces",
+			"apiVersion": "2021-06-01-preview",
+			"name": "[parameters('serviceBus').name]",
+			"location": "[resourceGroup().location]",
+			"sku": {
+				"name": "[parameters('serviceBus').sku]"				
+			},
+			"properties": {
+				"publicNetworkAccess": "Disabled",
+				"disableLocalAuth": false,
+				"zoneRedundant": false
+			}
+		},
+		{
+			"type": "Microsoft.ServiceBus/namespaces/AuthorizationRules",
+			"apiVersion": "2021-06-01-preview",
+			"name": "[concat(parameters('serviceBus').name, '/RootManageSharedAccessKey')]",
+			"location": "[resourceGroup().location]",
+			"dependsOn": [
+				"[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBus').name)]"
+			],
+			"properties": {
+				"rights": [
+					"Listen",
+					"Manage",
+					"Send"
+				]
+			}
+		},
+		{
+            "location": "[parameters('platform').region]",
+            "name": "[variables('pepName')]",
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2021-05-01",
+            "properties": {
+                "subnet": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('vnet').name, parameters('vnet').privateLink.name)]"
+                },
+                "customNetworkInterfaceName": "[variables('pepNicName')]",
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[variables('pepName')]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.ServiceBus/namespaces',parameters('serviceBus').name)]",
+                            "groupIds": [ "namespace" ]
+                        }
+                    }
+                ]
+            },
+            "tags": {},
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces',parameters('serviceBus').name)]"
+
+            ]
+        }
+	]
+}

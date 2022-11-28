@@ -1,0 +1,100 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyVaultName": {
+            "type": "String"
+        },
+        "keyVaultTenantId": {
+            "type": "String"
+        },
+        "privateEndpointSubnet": {
+            "type": "String"
+        },
+        "privateEndpointVNET": {
+            "type": "String"
+        },
+        "privateEndpointVNETResourcegroup": {
+            "type": "String"
+        },
+        "privateDnsResourceGroup": {
+            "type": "String"
+        },
+        "privateDnsSubscriptionID": {
+            "type": "String"
+        }
+
+    },
+    "variables": {
+        "ltKeyVault": "[uri(deployment().properties.templateLink.uri, '../components/keyVault.json')]",
+        "ltPrivateEndpoint": "[uri(deployment().properties.templateLink.uri, '../components/privateEndpoint.json')]"
+    },
+    "functions": [],
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "name": "deploy-KeyVault",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('ltKeyVault')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "tenantId": {
+                        "value": "[parameters('keyVaultTenantId')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "name": "deploy-privateendpoint-keyvault",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments','deploy-KeyVault')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('ltPrivateEndpoint')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "privateEndpointName": {
+                        "value": "[concat('pep-', parameters('keyVaultName'))]"
+                    },
+                    "privateEndpointResource": {
+                        "value": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                    },
+                    "privateEndpointSubnet": {
+                        "value": "[parameters('privateEndpointSubnet')]"
+                    },
+                    "privateEndpointVNET": {
+                        "value": "[parameters('privateEndpointVNET')]"
+                    },
+                    "privateEndpointVNETResourcegroup": {
+                        "value": "[parameters('privateEndpointVNETResourcegroup')]"
+                    },
+                    "privateEndpointGroupID": {
+                        "value": "vault"
+                    },
+                    "privateDnsZoneName": {
+                        "value": "privatelink.vaultcore.azure.net"
+                    },
+                    "privateDnsResourceGroup": {
+                        "value": "[parameters('privateDnsResourceGroup')]"
+                    },
+                    "privateDnsSubscriptionID": {
+                        "value": "[parameters('privateDnsSubscriptionID')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

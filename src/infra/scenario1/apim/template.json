@@ -1,0 +1,41 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vNet": {
+            "type": "object"
+        },
+        "platform": {
+            "type": "object"
+        },
+        "apim": {
+            "type": "object"
+        }
+
+    },
+    "functions": [],
+    "variables": {
+       
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ApiManagement/service",
+            "apiVersion": "2021-01-01-preview",
+            "name": "[parameters('apim').name]",
+            "location": "[parameters('platform').region]",
+            "sku": {
+                "name": "[parameters('apim').tier]",
+                "capacity": 1
+            },
+            //"identity": "[parameters('apim').identity]",
+            
+            "properties": {
+                "publisherEmail": "[parameters('apim').adminEmail]",
+                "publisherName": "[parameters('apim').organisation]"
+            },
+            "resources": [],
+            "dependsOn": []
+        }
+    ],
+    "outputs": {}
+}
