@@ -49,7 +49,7 @@ The enterprise architecture is broken down into six different design areas. You 
 |:--------------:|:--------------:|:--------------:|
 | [Identity and Access Management](docs/Identity%20and%20Access%20Management.md)|[Design Considerations](docs/Identity%20and%20Access%20Management.md#design-considerations)|[Design Recommendations](docs/Identity%20and%20Access%20Management.md#design-recommendations)|
 | [Network Topology and Connectivity](docs/Network%20Topology%20and%20Connectivity.md)|[Design Considerations](docs/Network%20Topology%20and%20Connectivity.md#design-considerations)|[Design Recommendations](docs/Network%20Topology%20and%20Connectivity.md#design-recommendations)|
-| [Security](docs/Security.md)|[Design Considerations](docs/Security.mdy#design-considerations)|[Design Recommendations](docs/Security.md#design-recommendations)|
+| [Security](docs/Security.md)|[Design Considerations](docs/Security.md#design-considerations)|[Design Recommendations](docs/Security.md#design-recommendations)|
 | [Management](docs/Management.md)|[Design Considerations](docs/Management.md#design-considerations)|[Design Recommendations](docs/Management.md#design-recommendation)|
 | [Governance](docs/Governance.md)|[Design Considerations](docs/Governance.md#design-considerations)|[Design Recommendations](docs/Governance.md#design-recommendations)|
 | [Platform Automation and DevOps](docs/Platform%20Automation%20and%20DevOps.md)|[Design Considerations](docs/Platform%20Automation%20and%20DevOps.md#design-considerations)|[Design Recommendations](docs/Platform%20Automation%20and%20DevOps.md#design-recommendations)|
