@@ -720,7 +720,7 @@ For Logic Apps secured inside a VNet:
 - [Virtual Network Service Endpoints
   Overview](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoints-overview)
 
-- Azure Private Endpoint DNS configuration
+- [Azure Private Endpoint DNS configuration](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns)
 
 - [App Service Environments (ASE)
   Overview](https://learn.microsoft.com/en-us/azure/app-service/environment/overview)
