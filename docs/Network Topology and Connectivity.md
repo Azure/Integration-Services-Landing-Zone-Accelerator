@@ -48,7 +48,7 @@ based around a hub-and-spoke architecture if your organization:
 The following architecture diagram shows the reference architecture for
 an AIS enterprise deployment:
 
-![](./media/image1.emf)
+![](./media/image1.png)
 
 ## Plan for IP addressing
 
