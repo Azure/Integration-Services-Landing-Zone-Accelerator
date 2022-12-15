@@ -76,7 +76,7 @@ resources are governed or secured or monitored).
 
 ## Further Reading
 
-- What is Azure Policy?
+- [What is Azure Policy?](https://learn.microsoft.com/en-us/azure/governance/policy/overview)
 
 - [Manage Azure resources and monitor costs by creating automation
   tasks](https://learn.microsoft.com/en-us/azure/logic-apps/create-automation-tasks-azure-resources)
