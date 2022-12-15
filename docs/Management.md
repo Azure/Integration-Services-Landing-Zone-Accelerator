@@ -191,7 +191,7 @@ The main query tables are:
 
 ## Further Reading
 
-- Application Insights overview
+- [Application Insights overview](https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview?tabs=net)
 
 - [Overview of Log Analytics in Azure
   Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overview)
