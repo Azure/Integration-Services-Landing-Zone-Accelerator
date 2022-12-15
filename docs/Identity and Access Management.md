@@ -162,8 +162,8 @@ Cache</td>
 
 ## Further Reading
 
-- Azure Active Directory Identity and access management operations
-  reference guide
+- [Azure Active Directory Identity and access management operations
+  reference guide](https://learn.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-ops-guide-iam)
 
 - [Azure identity and access management design
   area](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/landing-zone/design-area/identity-access)
