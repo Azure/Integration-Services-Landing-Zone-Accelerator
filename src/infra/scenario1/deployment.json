@@ -71,7 +71,7 @@
         "nameSuffix": "[concat('-',parameters('systemPrefix'),'-',parameters('environment'),'-',variables('platform').region,'-01')]",
 
         "keyVault": {
-            "name": "[concat('kv-',variables('platform').systemPrefix,'-',variables('platform').environment,'-',variables('platform').region,'-01')]"
+            "name": "[concat('kv-',variables('platform').systemPrefix,'-',variables('platform').environment,'-',uniqueString(resourceGroup().id))]"
         },
 
         "storage": {
