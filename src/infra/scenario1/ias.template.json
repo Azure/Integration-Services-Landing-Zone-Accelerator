@@ -90,7 +90,7 @@
             "name": "[concat('df',variables('nameSuffix'))]"
         },
         "keyVault": {
-            "name": "[concat('kv',variables('nameSuffix'))]",
+            "name": "[concat('kv',variables('platform').systemPrefix,variables('platform').environment,uniqueString(resourceGroup().id))]",
             "sku": "Standard"
         },
 
