@@ -3,7 +3,7 @@
 This article builds on a number of considerations and recommendations
 defined in the Azure landing zone article [<u>Azure landing zone design
 area for identity and access
-management</u>](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/landing-zone/design-area/identity-access).
+management</u>](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/landing-zone/design-area/identity-access).
 Following the guidance in this article will help you to identify design
 considerations and recommendations that relate to identity and access
 management specific to the deployment of Azure Integration Services
@@ -94,7 +94,7 @@ RBAC controls used to manage access to the resources.
   and management of AIS on Azure and assign RBAC permissions
   appropriately (for more detail on the permissions available, see
   [Resource Provider
-  Operations](https://docs.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations)).  
+  Operations](https://learn.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations)).  
   Some examples include:
 
 <table>
