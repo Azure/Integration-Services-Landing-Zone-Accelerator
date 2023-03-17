@@ -9,7 +9,7 @@ on a hub-and-spoke architecture.
 ## Design considerations
 
 Use a network topology based on [Virtual
-WAN](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/virtual-wan-network-topology)
+WAN](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/virtual-wan-network-topology)
 if your organization:
 
 - Plans to deploy resources across several Azure regions and requires
@@ -30,7 +30,7 @@ requirements. Microsoft manages this service, which helps reduce overall
 network complexity and modernize your organization's network.
 
 Use a [traditional Azure network
-topology](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/traditional-azure-networking-topology)
+topology](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/traditional-azure-networking-topology)
 based around a hub-and-spoke architecture if your organization:
 
 - Plans to deploy resources in only select Azure regions
@@ -54,7 +54,7 @@ an AIS enterprise deployment:
 
 Enterprise deployment of AIS will implement Private Endpoints and
 Virtual Networks. It's vital to [plan for IP
-addressing](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/plan-for-ip-addressing)
+addressing](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/plan-for-ip-addressing)
 in Azure to ensure that:
 
 - The IP address space doesn't overlap across on-premises locations and
@@ -67,13 +67,13 @@ in Azure to ensure that:
 ### Design Considerations
 
 - Some AIS services require [dedicated
-  subnets:](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-for-azure-services#services-that-can-be-deployed-into-a-virtual-network)
+  subnets:](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-for-azure-services#services-that-can-be-deployed-into-a-virtual-network)
 
   - [API
-    Management](https://docs.microsoft.com/en-us/azure/api-management/api-management-using-with-vnet?toc=%2Fazure%2Fvirtual-network%2Ftoc.json&tabs=stv2#enable-vnet-connectivity-using-the-azure-portal-stv2-compute-platform)
+    Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-using-with-vnet?toc=%2Fazure%2Fvirtual-network%2Ftoc.json&tabs=stv2#enable-vnet-connectivity-using-the-azure-portal-stv2-compute-platform)
 
   - [Logic
-    Apps](https://docs.microsoft.com/en-us/azure/logic-apps/secure-single-tenant-workflow-virtual-network-private-endpoint#prerequisites)
+    Apps](https://learn.microsoft.com/en-us/azure/logic-apps/secure-single-tenant-workflow-virtual-network-private-endpoint#prerequisites)
 
 - You can delegate subnets to certain services to create instances of a
   service within the subnet.
@@ -121,14 +121,14 @@ basis, but the supported resources are listed below:
 
 ## Private DNS
 
-[Azure Private DNS](https://docs.microsoft.com/en-us/azure/dns/)
+[Azure Private DNS](https://learn.microsoft.com/en-us/azure/dns/)
 provides a reliable and secure DNS service for your virtual network.
 Azure Private DNS manages and resolves domain names in the virtual
 network without the need to configure a custom DNS solution.
 
 To resolve the records of a private DNS zone from your virtual network,
 you must l[ink the virtual network with the
-zone](https://docs.microsoft.com/en-us/azure/dns/private-dns-virtual-network-links).
+zone](https://learn.microsoft.com/en-us/azure/dns/private-dns-virtual-network-links).
 Linked virtual networks have full access and can resolve all DNS records
 published in the private zone.
 
@@ -176,7 +176,7 @@ TLS termination?
 
 Many enterprise integration scenarios will require [connecting your
 on-premises systems to
-Azure](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/connectivity-to-azure).
+Azure](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/connectivity-to-azure).
 It is important to consider the recommended models to provide this
 connectivity.
 
@@ -196,7 +196,7 @@ connectivity.
 
 - *Azure ExpressRoute* and *Azure VPN Gateway* have [different
   capabilities, costs and
-  performance](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways#planningtable).
+  performance](https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways#planningtable).
 
 - The [On-Premises Data
   Gateway](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-onprem)
@@ -272,7 +272,7 @@ private endpoint depends largely on the particulars of your use case:
 [Azure Private
 Link](https://learn.microsoft.com/en-us/azure/private-link/private-link-overview)
 enables you to [access Azure AIS
-Services](https://docs.microsoft.com/en-us/azure/private-link/availability#integration)
+Services](https://learn.microsoft.com/en-us/azure/private-link/availability#integration)
 (for example, Service Bus and API Management) and Azure-hosted
 customer-owned/partner services over a private endpoint in your virtual
 network.
@@ -291,7 +291,7 @@ customer-owned, and shared partner services.
   public IP addresses.
 
 - [Azure Private
-  Link](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#private-link-resource)
+  Link](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview#private-link-resource)
   provides dedicated access by using private IP addresses for Azure PaaS
   instances or custom services behind Azure Load Balancer Standard tier.
 
@@ -343,7 +343,7 @@ customer-owned, and shared partner services.
 
 - Decide if there should be multiple gateways deployed and how these are
   load balanced - for example, by using [Application
-  Gateway](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/apis/protect-apis).
+  Gateway](https://learn.microsoft.com/en-us/azure/architecture/reference-architectures/apis/protect-apis).
 
 - Decide whether connectivity to on-premises or multi-cloud environments
   is required.
@@ -351,12 +351,12 @@ customer-owned, and shared partner services.
 ### Design Recommendations
 
 - Use [Application
-  Gateway](https://docs.microsoft.com/en-us/azure/api-management/api-management-howto-integrate-internal-vnet-appgateway)
+  Gateway](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-integrate-internal-vnet-appgateway)
   for external access to API Management when the API Management instance
   is deployed in a VNet in internal mode.
 
 - [Configure private
-  endpoint](https://docs.microsoft.com/en-us/azure/api-management/private-endpoint)
+  endpoint](https://learn.microsoft.com/en-us/azure/api-management/private-endpoint)
   for your API Management instance to allow clients in your private
   network to securely access the instance over Azure Private Link.
 
@@ -389,7 +389,7 @@ Azure Functions.
   account in the same region, which reduces latency
 
 - Use [private endpoints for Azure Storage
-  accounts](https://docs.microsoft.com/en-us/azure/storage/common/storage-private-endpoints)
+  accounts](https://learn.microsoft.com/en-us/azure/storage/common/storage-private-endpoints)
   to allow clients on a virtual network (VNet) to securely access data
   over a Private Link.
 
