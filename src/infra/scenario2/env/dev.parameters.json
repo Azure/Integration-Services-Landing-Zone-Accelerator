@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "value": "funcSBTeams"
+    },
+    "region": {
+      "value": "ussc"
+    },
+    "environment": {
+      "value": "dev"
+    },
+    "functionAADServicePrincipalClientId": {
+      "value": ""
+    },
+    "functionAADServicePrincipalClientSecret": {
+      "value": ""
+    },
+    "vNetAddressPrefix": {
+      "value": "10.0.0.0/25"
+    },
+    "privateEndpointSubnetAddressPrefix": {
+      "value": "10.0.0.0/26"
+    },
+    "appServicePlanSku": {
+      "value": "EP1"
+    },
+    "appServiceSubnetAddressPrefix": {
+      "value": "10.0.0.64/26"
+    }
+  }
+}
