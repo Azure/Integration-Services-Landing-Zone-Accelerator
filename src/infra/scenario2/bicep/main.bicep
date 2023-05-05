@@ -10,6 +10,7 @@ param vNetAddressPrefix string
 param privateEndpointSubnetAddressPrefix string
 param appServicePlanSku string
 param appServiceSubnetAddressPrefix string
+param enableTelemetry bool = true
 
 module names 'resource-names.bicep' = {
   name: 'resource-names'
@@ -154,5 +155,21 @@ module functionAppDeployment 'function.bicep' = {
     storageAccountPrivateDnsZoneName: storageAccountPrivateDnsZoneName
     vNetName: vNetDeployment.outputs.vNetName
     appServiceSubnetName: vNetDeployment.outputs.appServiceSubnetName
+  }
+}
+
+//  Telemetry Deployment
+@description('Enable usage and telemetry feedback to Microsoft.')
+var telemetryId = '760265E1-F55D-412E-B9AB-EF676C0C472E-${location}-islza-scenario2'
+resource telemetrydeployment 'Microsoft.Resources/deployments@2021-04-01' = if (enableTelemetry) {
+  name: telemetryId
+  location: location
+  properties: {
+    mode: 'Incremental'
+    template: {
+      '$schema': 'https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#'
+      contentVersion: '1.0.0.0'
+      resources: {}
+    }
   }
 }
