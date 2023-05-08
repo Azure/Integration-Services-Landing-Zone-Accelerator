@@ -2,7 +2,7 @@
 
 This reference implementation shows how to integrate [ServiceNow](https://www.servicenow.com/) with an Azure automation system built on [Service Bus](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview) and [Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview).
 
-In this example, the team had an existing PowerShell script that would interact with their Teams environment via the [Teams cmdlets](). This was run manually each time a ServiceNow ticket was received. The team wanted to automate this process, so that the PowerShell script would be run automatically whenever a new ServiceNow ticket was received.
+In this example, the team had an existing PowerShell script that would interact with their Teams environment via the [Teams cmdlets](https://learn.microsoft.com/en-us/microsoftteams/teams-powershell-overview). This was run manually each time a ServiceNow ticket was received. The team wanted to automate this process, so that the PowerShell script would be run automatically whenever a new ServiceNow ticket was received.
 
 ### Architecture
 
@@ -24,23 +24,73 @@ alt="Image is a button that, when clicked, starts a Deploy to Azure process to d
 ### Azure services
 
 - [Functions](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview)
+  - Azure Functions will run the PowerShell script that interacts with the Teams API & call back to the ServiceNow API.
 - [Service Bus](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview)
+  - Brokers the connection between ServiceNow & the Azure Function (or any other system).
+- [Service Principal](https://learn.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object)
+  - The identities that ServiceNow & the Azure Function will use to call the Service Bus & Teams API, respectively
 - [Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/key-vault-overview)
-- [Log Analytics & App Insights](https://docs.microsoft.com/en-us/azure/azure-monitor/overview)
-- [Storage Account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-overview)
-- [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview)
-- [Azure DevOps YAML pipelines](https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started/key-pipelines-concepts?view=azure-devops)
+  - Securly stores any credentials the Azure Function needs to run the PowerShell script (such as the service prinicpal client ID & client secret)
+- [Log Analytics & App Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/overview)
+  - Captures logs for all Azure services
+- [Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview)
+  - Stores the Azure Function code
+- [Managed Identity](https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview)
+  - Used by the Azure Function to pull secrets from Key Vault
+- [Azure DevOps YAML pipelines](https://learn.microsoft.com/en-us/azure/devops/pipelines/get-started/key-pipelines-concepts?view=azure-devops)
+  - Used to deploy the Azure resources & Azure Function code
 
 ### Additional Considerations & reasons for Service Bus
 
 ServiceNow, by default, expects a call to an external API to return within 30 seconds ([glide.http.outbound.max_timeout](https://docs.servicenow.com/bundle/tokyo-api-reference/page/integrate/web-services/reference/r_HTTPConnectionManagementProps.html)). In this example, some of the operations from the Teams API may take longer than 30 seconds to run (such as provisioning phone numbers in certain countries). Therefore, we need to ensure that there is a broker in between the ServiceNow frontend & the backend Azure Function. 
 
-Therefore, ServiceNow will authenticate using an Azure AD [Service Principal](https://learn.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object) and send a message to a [Service Bus topic](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-queues-topics-subscriptions#topics-and-subscriptions). The Azure Function will then run the PowerShell script, using the data passed in from ServiceNow in the message body.
+ServiceNow will authenticate using an Azure AD [Service Principal](https://learn.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals#service-principal-object) and send a message to a [Service Bus topic](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-queues-topics-subscriptions#topics-and-subscriptions). The Azure Function will then run the PowerShell script, using the data passed in from ServiceNow in the message body.
 
-We also need a way to generically respond to ServiceNow when a message is complete. In this example, the Azure Function that runs the PowerShell script will respond back ServiceNow using a different topic `callback`. Another Azure Function is listening to this topic, and will respond back to ServiceNow with the result of the operation (using the `clientCallback.uri` field received in the initial topic message. ServiceNow generates a [unique URI](https://docs.servicenow.com/bundle/utah-integrate-applications/page/administer/integrationhub-store-spokes/task/govnotify-wbhk.html) for each request, and expects the response to be sent back to this URI
+We also need a way to generically respond to ServiceNow when a message is complete. In this example, the Azure Function that runs the PowerShell script will respond back ServiceNow using a different topic `callback`. Another Azure Function is listening to this topic, and will respond back to ServiceNow with the result of the operation (using the `clientCallback.uri` field received in the initial topic message). ServiceNow generates a [unique URI](https://docs.servicenow.com/bundle/utah-integrate-applications/page/administer/integrationhub-store-spokes/task/govnotify-wbhk.html) for each request, and expects the response to be sent back to this URI
+
+### Service Bus topics & message format
+
+Service Bus supports [topics](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-queues-topics-subscriptions#topics-and-subscriptions) which can be used to support a publish/subscribe pattern. Service Bus supports 10K topics per namespace, so we can make a new topic for each automation that teams want to create. This makes it so that ServiceNow only has to know about how to publish messages to a Service Bus topic, and doesn't need to know about the backend automation. Likewise, the backend automations don't have to know anything about ServiceNow, they just need to know how to subscribe to a Service Bus topic & publish a "callback" message to a different topic.
+
+In this example, ServiceNow will publish a message to a topic called `provision-team`. The Azure Function will subscribe to this topic, and will receive the message. Service Now 
+
+The initial request message will contain the following fields:
+
+```json
+{
+  "clientCallback": {
+    "type": "webhook" // type of callback request
+    "method": "POST" // method of callback request
+    "uri": "https://service-now.com/api/..." // URI to send callback request to
+    "token": "abc123" // unique identifier for this request
+  },
+  "request": {
+    "teamName": "NewTeam" //the name of the new Teams team to create
+    "channelName": "NewChannel" //the name of the new Teams channel to create
+  }
+}
+```
+
+The Azure Function will process the `request` section and then use the `clientCallback` section to respond to ServiceNow via the Service Bus. It will add a new message to a generic `callback` topic with the information that ServiceNow will need to update its internal ticketing system.
+
+The callback message will contain the following fields:
+
+```json
+{
+  "uri": "https://service-now.com/api/...", // URI to send callback request to (from original message)
+  "method": "POST", // how to call the ServiceNow URI (from original message)
+  "response": {
+    "token": "abc123", // the unique identifier for this request (from original message)
+    "state": "Success", // the state of the request (Success or Failure)
+    "message": "Team created successfully" // the message to send back to ServiceNow
+  }
+}
+```
+
+Another generic Azure Function will be listening to this `callback` topic, and will send the `response` section back to ServiceNow using the `uri` & `method` fields.
 
 ### Azure Active Directory
 
 When the script was being run locally, it used the identity of the person running it to call the Teams API. However, when the Function run in Azure, it needs its own identity. This identity is an Azure AD Service Principal. This identity will have a set of scopes (API permissions) assigned to it so that it can call the Teams API in a similar fashion to the original script.
 
-In addition, while ServiceNow could authenticate with the Service Bus using a [SAS token](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-sas#shared-access-signature-authentication), it is preferred to use AAD authentication to protect the Service Bus. Therefore, ServiceNow will need to use [OAuth 2.0 authentication](https://docs.servicenow.com/bundle/tokyo-api-reference/page/integrate/outbound-rest/task/t_ConfigureARESTMessageWithOAuth-1.html) in order to get an access token that is valid for the Service Bus. In addition, this service principal needs to be granted RBAC (role-based access control) permissions to the Service Bus so that Service Now (running as the service principal identity) can post messages.
+In addition, while ServiceNow could authenticate with the Service Bus using a [SAS token](https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-sas#shared-access-signature-authentication), it is preferred to use AAD authentication to protect the Service Bus. Therefore, ServiceNow will need to use [OAuth 2.0 authentication](https://docs.servicenow.com/bundle/tokyo-api-reference/page/integrate/outbound-rest/task/t_ConfigureARESTMessageWithOAuth-1.html) in order to get an access token that is valid for the Service Bus. In addition, this service principal needs to be granted RBAC (role-based access control) permissions to the Service Bus so that ServiceNow (running as the service principal identity) can post messages.
