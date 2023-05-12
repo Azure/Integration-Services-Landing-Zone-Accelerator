@@ -8,10 +8,6 @@ In this example, the team had an existing PowerShell script that would interact 
 
 ![architecture](./media/architecture.png)
 
-Deploy this automation with 1 step.
-
-[<img src="./media/deployToAzureButton.png" style="width:1.73958in;height:0.35417in" alt="Image is a button that, when clicked, starts a Deploy to Azure process to deploy the templates to Azure." />](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FIntegration-Services-Landing-Zone-Accelerator%2Fmain%2Fsrc%2Finfra%2Fscenario2%2F/bicep/%2Fias.template.json)
-
 ### Design Principles
 
 - **Automate everything** - The team wanted to automate the entire process, so that the PowerShell script would be run automatically whenever a new ServiceNow ticket was received.
