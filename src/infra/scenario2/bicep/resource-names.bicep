@@ -1,0 +1,31 @@
+param appName string
+param region string
+param environment string
+
+output appInsightsName string = 'ai-${appName}-${region}-${environment}'
+output appServicePlanName string = 'asp-${appName}-${region}-${environment}'
+output appServiceSubnetName string = 'app-service-subnet'
+output appServiceSubnetNetworkSecurityGroupName string = 'nsg-appService-${appName}-${region}-${environment}'
+output callbackFunctionAppName string = 'func-callback-${appName}-${region}-${environment}'
+output callbackFunctionAppPrivateEndpointName string = 'func-callback-pe-${appName}-${region}-${environment}'
+output callbackServiceBusSubscriptionName string = 'callback-subscription'
+output callbackServiceBusTopicName string = 'callback'
+output functionAADServicePrincipalClientIdSecretName string = 'function-aad-service-principal-client-id'
+output functionAADServicePrincipalClientSecretSecretName string = 'function-aad-service-principal-client-secret'
+output functionAppStorageAccountName string = toLower('sa${uniqueString(appName, region, environment)}')
+output functionAppStorageAccountPrivateEndpointName string = 'sa-pe-${appName}-${region}-${environment}'
+output keyVaultName string = 'kv-${uniqueString(appName, region, environment)}'
+output keyVaultPrivateEndpointName string = 'kv-pe-${uniqueString(appName, region, environment)}'
+output logAnalyticsWorkspaceName string = 'la-${appName}-${region}-${environment}'
+output privateLinkScopePrivateEndpointName string = 'pls-pe-${appName}-${region}-${environment}'
+output managedIdentityName string = 'mi-${appName}-${region}-${environment}'
+output privateEndpointSubnetName string = 'private-endpoint-subnet'
+output privateEndpointSubnetNetworkSecurityGroupName string = 'nsg-privateEndpoint-${appName}-${region}-${environment}'
+output provisionTeamsFunctionAppName string = 'func-provision-teams-${appName}-${region}-${environment}'
+output provisionTeamsFunctionAppPrivateEndpointName string = 'func-provision-teams-pe-${appName}-${region}-${environment}'
+output provisionTeamsServiceBusSubscriptionName string = 'provision-teams-subscription'
+output provisionTeamsServiceBusTopicName string = 'provision-teams'
+output serviceBusConnectionStringSecretName string = 'service-bus-connection-string'
+output serviceBusNamespaceName string = 'sbns-${appName}-${region}-${environment}'
+output serviceBusPrivateEndpointName string = 'sb-pe-${appName}-${region}-${environment}'
+output vNetName string = 'vnet-${appName}-${region}-${environment}'

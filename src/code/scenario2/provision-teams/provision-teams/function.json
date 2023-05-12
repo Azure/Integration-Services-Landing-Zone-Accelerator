@@ -1,0 +1,19 @@
+{
+  "bindings": [
+    {
+      "name": "provisionTeamsMessage",
+      "type": "serviceBusTrigger",
+      "direction": "in",
+      "topicName": "provision-teams",
+      "subscriptionName": "provision-teams-subscription",
+      "connection": "ServiceBusConnection"
+    },
+    {
+      "name": "callbackTopic",
+      "type": "serviceBus",
+      "direction": "out",
+      "topicName": "callback",
+      "connection": "ServiceBusConnection"
+    }
+  ]
+}

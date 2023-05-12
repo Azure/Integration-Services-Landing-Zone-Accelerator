@@ -1,0 +1,12 @@
+{
+  "bindings": [
+    {
+      "name": "callbackMessage",
+      "type": "serviceBusTrigger",
+      "direction": "in",
+      "topicName": "callback",
+      "subscriptionName": "callback-subscription",
+      "connection": "ServiceBusConnection"
+    }
+  ]
+}
