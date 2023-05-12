@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "appName": {
-      "value": "funcSBTeams"
+      "value": "funcSvcBusTeams"
     },
     "region": {
       "value": "ussc"
@@ -15,6 +15,9 @@
       "value": ""
     },
     "functionAADServicePrincipalClientSecret": {
+      "value": ""
+    },
+    "serviceNowAADServicePrincipalObjectId": {
       "value": ""
     },
     "vNetAddressPrefix": {

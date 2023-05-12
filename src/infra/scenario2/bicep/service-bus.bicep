@@ -4,15 +4,15 @@ param provisionTeamsServiceBusTopicName string
 param provisionTeamsServiceBusSubscriptionName string
 param callbackServiceBusTopicName string
 param callbackServiceBusSubscriptionName string
-param serviceBusConnectionStringSecretName string
-param keyVaultName string
 param serviceBusPrivateEndpointName string
 param serviceBusPrivateDnsZoneName string
 param vNetName string
 param privateEndpointSubnetName string
+param managedIdentityName string
+param serviceNowAADServicePrincipalObjectId string
 
-resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
-  name: keyVaultName
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
+  name: managedIdentityName
 }
 
 resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2017-04-01' = {
@@ -65,13 +65,33 @@ resource callbackServiceBusSubscription 'Microsoft.ServiceBus/namespaces/topics/
   }
 }
 
-var endpoint = '${serviceBusNamespace.id}/AuthorizationRules/RootManageSharedAccessKey'
+resource serviceBusDataOwnerRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' existing = {
+  scope: subscription()
+  name: '090c5cfd-751d-490a-894a-3ce6f1109419'
+}
 
-resource serviceBusConnectionString 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
-  name: serviceBusConnectionStringSecretName
-  parent: keyVault
+resource functionAppServiceBusDataOwnerRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+  scope: serviceBusNamespace
+  name: guid(serviceBusNamespace.id, managedIdentity.name, serviceBusDataOwnerRoleDefinition.name)
   properties: {
-    value: 'Endpoint=sb://${serviceBusNamespace.name}.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=${listKeys(endpoint, serviceBusNamespace.apiVersion).primaryKey}'
+    roleDefinitionId: serviceBusDataOwnerRoleDefinition.id
+    principalId: managedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource serviceBusDataSenderRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' existing = {
+  scope: subscription()
+  name: '69a216fc-b8fb-44d8-bc22-1f3c2cd27a39'
+}
+
+resource serviceNowServiceBusDataSenderRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+  scope: serviceBusNamespace
+  name: guid(serviceBusNamespace.id, serviceNowAADServicePrincipalObjectId, serviceBusDataSenderRoleDefinition.name)
+  properties: {
+    roleDefinitionId: serviceBusDataSenderRoleDefinition.id
+    principalId: serviceNowAADServicePrincipalObjectId
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -80,4 +100,3 @@ output provisionTeamsServiceBusTopicName string = provisionTeamsServiceBusTopicN
 output provisionTeamsServiceBusSubscriptionName string = provisionTeamsServiceBusSubscriptionName
 output callbackServiceBusTopicName string = callbackServiceBusTopicName
 output callbackServiceBusSubscriptionName string = callbackServiceBusSubscriptionName
-output serviceBusConnectionStringSecretName string = serviceBusConnectionStringSecretName

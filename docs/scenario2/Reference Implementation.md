@@ -10,8 +10,7 @@ In this example, the team had an existing PowerShell script that would interact 
 
 Deploy this automation with 1 step.
 
-[<img src="./media/deployToAzureButton.png" style="width:1.73958in;height:0.35417in"
-alt="Image is a button that, when clicked, starts a Deploy to Azure process to deploy the templates to Azure." />](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FIntegration-Services-Landing-Zone-Accelerator%2Fmain%2Fsrc%2Finfra%2Fscenario2%2F/bicep/%2Fias.template.json)
+[<img src="./media/deployToAzureButton.png" style="width:1.73958in;height:0.35417in" alt="Image is a button that, when clicked, starts a Deploy to Azure process to deploy the templates to Azure." />](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FIntegration-Services-Landing-Zone-Accelerator%2Fmain%2Fsrc%2Finfra%2Fscenario2%2F/bicep/%2Fias.template.json)
 
 ### Design Principles
 
@@ -37,8 +36,78 @@ alt="Image is a button that, when clicked, starts a Deploy to Azure process to d
   - Stores the Azure Function code
 - [Managed Identity](https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview)
   - Used by the Azure Function to pull secrets from Key Vault
-- [Azure DevOps YAML pipelines](https://learn.microsoft.com/en-us/azure/devops/pipelines/get-started/key-pipelines-concepts?view=azure-devops)
-  - Used to deploy the Azure resources & Azure Function code
+
+### Prerequisites
+
+- [PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.3&viewFallbackFrom=powershell-7.1)
+- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [Azure Function CLI](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=v4%2Cwindows%2Ccsharp%2Cportal%2Cbash#install-the-azure-functions-core-tools)
+
+### AzureAD setup
+
+You will need to create 2 service principals in AAD. One that is the identity for ServiceNow to use to put messages on the Service Bus and one to allow the Azure Function PowerShell code to authenticate against the Teams API.
+
+### ServiceNow AAD service principal setup
+
+1.  Follow the instructions [here](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to create a new AAD app registration.
+
+>NOTE: In order for this service principal to be able to put a message on the Service Bus, it must have Role-Based-Access-Control (RBAC) permissions to the Service Bus namespace. You can [grant](https://learn.microsoft.com/en-us/azure/service-bus-messaging/authenticate-application#assign-azure-roles-using-the-azure-portal) the `Azure Service Bus Data Sender` role to the service principal at the namespace level. In this example, this is _done for you as part of the Infrastructure as Code deployment_.
+
+1.  Take a note of the `object id` of the service principal (**not the app registration**). Search in the `Enterprise Applications` blade for your newly created service principal. You will need this later for the Infrastructure as Code deployment.
+
+### Azure Function AAD service principal setup
+
+1.  Follow the instructions [here](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app) to create a new AAD app registration.
+
+1.  Follow the instructions [here](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-configure-app-access-web-apis) to assign permissions to the service prinicpal to allow it to call the Teams API.
+
+    - Follow the instructions [here](https://learn.microsoft.com/en-us/microsoftteams/teams-powershell-application-authentication#setup-application-based-authentication).
+
+    >IMPORTANT: Note that you will need [admin consent](https://learn.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent?pivots=portal) for the permissions to be granted for your tenant.
+
+### Deployment
+
+1.  Open the `src/infra/scenario2/bicep/env/dev.parameters.json` file and modify the values as appropriate.
+
+1.  Open a shell and navigate to the `src/infra/scenario2/bicep` folder.
+
+1.  Run the following command to deploy the infrastructure (it assumes you already have a resource group to deploy into)
+
+    ```shell
+    az deployment group create --resource-group <resource-group-name> --template-file ./main.bicep --parameters ./env/dev.parameters.json --parameters functionAADServicePrincipalClientId=<function-service-principal-client-id> functionAADServicePrincipalClientSecret=<function-service-principal-client-secret>  serviceNowAADServicePrincipalObjectId=<serviceNow-service-principal-object-id>
+    ```
+
+>NOTE: You must be on the same network as the Azure Function in order to publish to the SCM endpoint due to the private endpoint deployment.
+
+1.  Navigate to the `src/code/scenario2/provision-teams` directory.
+
+1.  Run the following command to deploy the `provision-teams` Azure Function PowerShell app.
+
+    ```shell
+    func azure functionapp publish <provision-teams-function-app-name>
+    ```
+
+1.  Navigate to the `src/code/scenario2/callback` directory.
+
+1.  Run the following command to deploy the `callback` Azure Function PowerShell app.
+
+    ```shell
+    func azure functionapp publish <callback-function-app-name>
+    ```
+
+### Testing
+
+1.  Run the following `curl` command to get an access token to the Service Bus (substitute your tenant ID, client ID, & client secret)
+
+    ```powershell
+    $accessToken = curl https://login.microsoftonline.com/<tenant-ID>/oauth2/v2.0/token -H "Content-Type: application/x-www-form-urlencoded" --data "grant_type=client_credentials&client_id=<client-id>&client_secret=<client-secret>&scope=https%3A%2F%2Fservicebus.azure.net%2F.default" | ConvertFrom-Json | Select-Object -ExpandProperty access_token
+    ```
+
+1.  Run the following `curl` command to put a message on the Service Bus (using the access token received in the previous step).
+
+    ```powershell
+    curl https://<service-bus-name>.servicebus.windows.net/provision-teams/messages -H "Authorization: Bearer $accessToken" -H "Content-Type: application/json" --data '{ "clientCallback": { "type": "webhook", "method": "POST", "uri": "https://service-now.com/api/", "token": "abc123" }, "request": { "ownerUserPrincipalName": "<user-principal-name-of-team-owner>", "teamName": "NewTeam", "channelName": "NewChannel" } }' -v
+    ```
 
 ### Additional Considerations & reasons for Service Bus
 
@@ -59,13 +128,14 @@ The initial request message will contain the following fields:
 ```json
 {
   "clientCallback": {
-    "type": "webhook" // type of callback request
-    "method": "POST" // method of callback request
-    "uri": "https://service-now.com/api/..." // URI to send callback request to
+    "type": "webhook", // type of callback request
+    "method": "POST", // method of callback request
+    "uri": "https://service-now.com/api/...", // URI to send callback request to
     "token": "abc123" // unique identifier for this request
   },
   "request": {
-    "teamName": "NewTeam" //the name of the new Teams team to create
+    "ownerUserPrincipalName": "", // the UPN of the user who will own the new Teams team
+    "teamName": "NewTeam", //the name of the new Teams team to create
     "channelName": "NewChannel" //the name of the new Teams channel to create
   }
 }

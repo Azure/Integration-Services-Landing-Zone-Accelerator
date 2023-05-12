@@ -26,7 +26,7 @@ $response = @{
 try {
   New-TeamsItems -GraphToken $graphToken `
     -TeamsToken $teamsToken `
-    -UserPrincipalName $provisionTeamsMessage.request.userPrincipalName `
+    -OwnerUserPrincipalName $provisionTeamsMessage.request.ownerUserPrincipalName `
     -TeamName $provisionTeamsMessage.request.teamName `
     -ChannelName $provisionTeamsMessage.request.channelName
 }

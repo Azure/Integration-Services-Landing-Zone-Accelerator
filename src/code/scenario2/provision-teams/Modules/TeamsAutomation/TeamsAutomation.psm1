@@ -1,9 +1,9 @@
 function New-TeamsItems {
-  param ($GraphToken, $TeamsToken, $UserPrincipalName, $TeamName, $ChannelName)
+  param ($GraphToken, $TeamsToken, $OwnerUserPrincipalName, $TeamName, $ChannelName)
 
   Write-Information "Connecting to Microsoft Teams API..."
 
-  Connect-MicrosoftTeams -AccessTokens @("$GraphToken", "$TeamsToken")
+  Connect-MicrosoftTeams -AccessTokens @("$GraphToken", "$TeamsToken") | Out-Null
 
   Write-Information "Connected to Microsoft Teams API"
 
@@ -11,17 +11,17 @@ function New-TeamsItems {
 
   $group = New-Team -DisplayName $TeamName `
     -Visibility Public `
-    -Owner $UserPrincipalName
+    -Owner $OwnerUserPrincipalName
 
   Write-Information "Created team ${TeamName}"
 
-  Write-Information "Adding user ${UserPrincipalName} as owner..."
+  Write-Information "Adding user ${OwnerUserPrincipalName} as owner..."
 
   Add-TeamUser -GroupId $group.GroupId `
-    -User $UserPrincipalName `
+    -User $OwnerUserPrincipalName `
     -Role Owner
 
-  Write-Information "Added user ${UserPrincipalName} as owner"
+  Write-Information "Added user ${OwnerUserPrincipalName} as owner"
 
   Write-Information "Creating channel ${ChannelName}..."
 

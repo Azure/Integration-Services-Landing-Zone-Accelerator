@@ -2,10 +2,10 @@ param appName string
 param region string
 param environment string
 param location string = resourceGroup().location
-@secure()
 param functionAADServicePrincipalClientId string
 @secure()
 param functionAADServicePrincipalClientSecret string
+param serviceNowAADServicePrincipalObjectId string
 param vNetAddressPrefix string
 param privateEndpointSubnetAddressPrefix string
 param appServicePlanSku string
@@ -53,6 +53,9 @@ module dnsDeployment 'dns.bicep' = [for privateDnsZoneName in privateDnsZoneName
 
 module loggingDeployment 'logging.bicep' = {
   name: 'logging-deployment'
+  dependsOn: [
+    dnsDeployment
+  ]
   params: {
     appInsightsName: names.outputs.appInsightsName
     privateLinkScopePrivateEndpointName: names.outputs.privateLinkScopePrivateEndpointName
@@ -124,11 +127,11 @@ module serviceBusDeployment 'service-bus.bicep' = {
     provisionTeamsServiceBusSubscriptionName: names.outputs.provisionTeamsServiceBusSubscriptionName
     callbackServiceBusTopicName: names.outputs.callbackServiceBusTopicName
     callbackServiceBusSubscriptionName: names.outputs.callbackServiceBusSubscriptionName
-    serviceBusConnectionStringSecretName: names.outputs.serviceBusConnectionStringSecretName
-    keyVaultName: keyVaultDeployment.outputs.keyVaultName
     privateEndpointSubnetName: vNetDeployment.outputs.privateEndpointSubnetName
     vNetName: vNetDeployment.outputs.vNetName
     serviceBusPrivateDnsZoneName: serviceBusPrivateDnsZoneName
+    managedIdentityName: managedIdentityDeployment.outputs.managedIdentityName
+    serviceNowAADServicePrincipalObjectId: serviceNowAADServicePrincipalObjectId
   }
 }
 
@@ -148,7 +151,7 @@ module functionAppDeployment 'function.bicep' = {
     managedIdentityName: managedIdentityDeployment.outputs.managedIdentityName
     provisionTeamsFunctionAppName: names.outputs.provisionTeamsFunctionAppName
     provisionTeamsFunctionAppPrivateEndpointName: names.outputs.provisionTeamsFunctionAppPrivateEndpointName
-    serviceBusConnectionStringSecretName: serviceBusDeployment.outputs.serviceBusConnectionStringSecretName
+    serviceBusNamespaceName: serviceBusDeployment.outputs.serviceBusNamespaceName
     functionAppStorageAccountPrivateEndpointName: names.outputs.functionAppStorageAccountPrivateEndpointName
     appServicePrivateDnsZoneName: appServicePrivateDnsZoneName
     privateEndpointSubnetName: vNetDeployment.outputs.privateEndpointSubnetName
@@ -160,10 +163,9 @@ module functionAppDeployment 'function.bicep' = {
 
 //  Telemetry Deployment
 @description('Enable usage and telemetry feedback to Microsoft.')
-var telemetryId = '760265E1-F55D-412E-B9AB-EF676C0C472E-${location}-islza-scenario2'
+var telemetryId = '760265E1-F55D-412E-B9AB-EF676C0C472E-${region}-islza-scenario2'
 resource telemetrydeployment 'Microsoft.Resources/deployments@2021-04-01' = if (enableTelemetry) {
   name: telemetryId
-  location: location
   properties: {
     mode: 'Incremental'
     template: {

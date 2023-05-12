@@ -7,7 +7,7 @@ param logAnalyticsWorkspaceName string
 param appInsightsName string
 param keyVaultName string
 param functionAppStorageAccountName string
-param serviceBusConnectionStringSecretName string
+param serviceBusNamespaceName string
 param functionAADServicePrincipalClientIdSecretName string
 param functionAADServicePrincipalClientSecretSecretName string
 param callbackFunctionAppPrivateEndpointName string
@@ -67,6 +67,10 @@ resource appServiceSubnet 'Microsoft.Network/virtualNetworks/subnets@2022-09-01'
   name: '${vNetName}/${appServiceSubnetName}'
 }
 
+resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2021-11-01' existing = {
+  name: serviceBusNamespaceName
+}
+
 resource provisionTeamsFunctionApp 'Microsoft.Web/sites@2021-02-01' = {
   name: provisionTeamsFunctionAppName
   location: location
@@ -102,8 +106,16 @@ resource provisionTeamsFunctionApp 'Microsoft.Web/sites@2021-02-01' = {
           value: 'Recommended'
         }
         {
-          name: 'ServiceBusConnectionString'
-          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=${serviceBusConnectionStringSecretName})'
+          name: 'ServiceBusConnection__fullyQualifiedNamespace'
+          value: '${serviceBusNamespace.name}.servicebus.windows.net'
+        }
+        {
+          name: 'ServiceBusConnection__credential'
+          value: 'managedIdentity'
+        }
+        {
+          name: 'ServiceBusConnection__clientId'
+          value: managedIdentity.properties.clientId
         }
         {
           name: 'AzureAdClientId'
@@ -196,8 +208,16 @@ resource callbackFunctionApp 'Microsoft.Web/sites@2021-02-01' = {
           value: 'Recommended'
         }
         {
-          name: 'ServiceBusConnectionString'
-          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=${serviceBusConnectionStringSecretName})'
+          name: 'ServiceBusConnection__fullyQualifiedNamespace'
+          value: '${serviceBusNamespace.name}.servicebus.windows.net'
+        }
+        {
+          name: 'ServiceBusConnection__credential'
+          value: 'managedIdentity'
+        }
+        {
+          name: 'ServiceBusConnection__clientId'
+          value: managedIdentity.properties.clientId
         }
         {
           name: 'AzureWebJobsStorage'
@@ -229,7 +249,7 @@ resource callbackFunctionApp 'Microsoft.Web/sites@2021-02-01' = {
 }
 
 module callbackFunctionAppPrivateEndpoint 'private-endpoint.bicep' = {
-  name: '${callbackFunctionApp.name}-privateEndpoint-deployment'
+  name: '${callbackFunctionApp.name}-pe-deployment'
   params: {
     groupIds: [
       'sites'
