@@ -59,7 +59,8 @@ The enterprise architecture is broken down into six different design areas. You 
 
 Pick one of the scenarios below to get started on a reference implementation.
 
-:arrow_forward: [Scenario 1: Enterprise Deployment of AIS](docs/Reference%20Implementation.md)
+:arrow_forward: [Scenario 1: Enterprise Deployment of AIS](docs/scenario1/Reference%20Implementation.md)
+:arrow_forward: [Scenario 2: Integrating ServiceNow with AIS](docs/scenario2/Reference%20Implementation.md)
 
 ---
 
