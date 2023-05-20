@@ -100,8 +100,6 @@ The ARM templates deploy the following resources:
 
   - Deployed into VNet
 
-- Data Factory
-
 - Governance
 
   - Setup Defender for Cloud
