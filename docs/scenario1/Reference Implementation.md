@@ -26,7 +26,7 @@ You can deploy them all (with a User Interface to enter details)
 using this Deploy to Azure button below:  
   
 [<img src="./media/image8.png" style="width:1.73958in;height:0.35417in"
-alt="Image is a button that, when clicked, starts a Deploy to Azure process to deploy the recommended enterprise templates to Azure." />](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FIntegration-Services-Landing-Zone-Accelerator%2Fmain%2Fsrc%2Finfra%2Fscenario1%2Fias.template.json)
+alt="Image is a button that, when clicked, starts a Deploy to Azure process to deploy the recommended enterprise templates to Azure." />](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdtoomey%2FIntegration-Services-Landing-Zone-Accelerator%2Fmain%2Fsrc%2Finfra%2Fscenario1%2Fias.template.json)
 
 The reference implementation consists of the following resources:
 
