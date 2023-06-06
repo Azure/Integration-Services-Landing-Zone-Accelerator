@@ -12,7 +12,7 @@
         "environment": {
             "type": "string",
             "defaultValue": "dev",
-            "allowedValues": [ "dev", "sit", "uat", "prod" ],
+            "allowedValues": [ "dev", "uat", "prod" ],
             "metadata": {
                 "description": "Type of environment"
             }
@@ -292,7 +292,7 @@
             ]
         },
 
-        /* Data Factory
+        // Data Factory
         {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2021-04-01",
@@ -327,7 +327,6 @@
 
             ]
         },
-        */
 
 
         // apim
