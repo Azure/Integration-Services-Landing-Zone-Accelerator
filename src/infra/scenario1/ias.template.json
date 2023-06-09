@@ -213,7 +213,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(deployment().properties.templateLink.uri, 'sbus/serviceBus.json')]",
+                    "uri": "[uri(variables('srcUri'), 'sbus/serviceBus.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -312,7 +312,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(deployment().properties.templateLink.uri, 'df/dataFactory.json')]",
+                    "uri": "[uri(variables('srcUri'), 'df/dataFactory.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
