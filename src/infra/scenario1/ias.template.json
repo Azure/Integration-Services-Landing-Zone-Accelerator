@@ -69,6 +69,12 @@
     },
 
     "variables": {
+        // Will reference the standard templates when using the "Deploy to Azure" button directly form the repository
+        "srcUri": "[deployment().properties.templateLink.uri]",
+
+        // Makes it possible for people to local changes, execute the deployment from local files - but still keep the templateLink property / external template feature working
+        // "srcUri": "https://raw.githubusercontent.com/Azure/Integration-Services-Landing-Zone-Accelerator/main/src/infra/scenario1/",
+
         "platform": {
             "systemPrefix": "[parameters('systemPrefix')]",
             "environment": "[parameters('environment')]",
@@ -80,15 +86,18 @@
         "storage": {
             "name": "[concat('stg',variables('platform').systemPrefix, variables('platform').environment,uniqueString(resourceGroup().id))]"
         },
+
         "logicApp": {
             "name": "[concat('logic',variables('nameSuffix'))]"
         },
+
         "funcApp": {
             "name": "[concat('func',variables('nameSuffix'))]"
         },
         "dataFactory": {
             "name": "[concat('df',variables('nameSuffix'))]"
         },
+
         "keyVault": {
             "name": "[concat('kv',variables('platform').systemPrefix,variables('platform').environment,uniqueString(resourceGroup().id))]",
             "sku": "Standard"
@@ -155,7 +164,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(deployment().properties.templateLink.uri, 'kv/keyVault.json')]",
+                    "uri": "[uri(variables('srcUri'), 'kv/keyVault.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -183,7 +192,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(deployment().properties.templateLink.uri, 'vnet/vNet.json')]",
+                    "uri": "[uri(variables('srcUri'), 'vnet/vNet.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -195,6 +204,7 @@
                 }
             }
         },
+        
         // Service Bus
         {
             "type": "Microsoft.Resources/deployments",
@@ -222,6 +232,7 @@
                 "[resourceId('Microsoft.Resources/deployments', 'caf-ais-vnet')]"
             ]
         },
+
         // Logic Apps
         {
             "type": "Microsoft.Resources/deployments",
@@ -230,7 +241,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(deployment().properties.templateLink.uri, 'la/logicApp.json')]",
+                    "uri": "[uri(variables('srcUri'), 'la/logicApp.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -256,6 +267,7 @@
                 "[resourceId('Microsoft.Resources/deployments', 'caf-ais-app-insights')]"
             ]
         },
+
         // Function  Apps
         {
             "type": "Microsoft.Resources/deployments",
@@ -264,7 +276,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(deployment().properties.templateLink.uri, 'func/funcApp.json')]",
+                    "uri": "[uri(variables('srcUri'), 'func/funcApp.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -337,7 +349,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(deployment().properties.templateLink.uri, 'apim/template.json')]",
+                    "uri": "[uri(variables('srcUri'), 'apim/template.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -357,6 +369,7 @@
                 "[resourceId('Microsoft.Resources/deployments', 'caf-ais-vnet')]"
             ]
         },
+
         // log analytics
         {
             "type": "Microsoft.Resources/deployments",
@@ -365,7 +378,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(deployment().properties.templateLink.uri, 'log/logAnalytics.json')]",
+                    "uri": "[uri(variables('srcUri'), 'log/logAnalytics.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -382,6 +395,7 @@
                 }
             }
         },
+
         // application insights
         {
             "type": "Microsoft.Resources/deployments",
@@ -390,7 +404,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "[uri(deployment().properties.templateLink.uri, 'log/appInsights.json')]",
+                    "uri": "[uri(variables('srcUri'), 'log/appInsights.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
