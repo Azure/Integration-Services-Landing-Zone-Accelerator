@@ -53,7 +53,7 @@ The enterprise architecture is broken down into six different design areas. You 
 | [Management](docs/Management.md)|[Design Considerations](docs/Management.md#design-considerations)|[Design Recommendations](docs/Management.md#design-recommendation)|
 | [Governance](docs/Governance.md)|[Design Considerations](docs/Governance.md#design-considerations)|[Design Recommendations](docs/Governance.md#design-recommendations)|
 | [Platform Automation and DevOps](docs/Platform%20Automation%20and%20DevOps.md)|[Design Considerations](docs/Platform%20Automation%20and%20DevOps.md#design-considerations)|[Design Recommendations](docs/Platform%20Automation%20and%20DevOps.md#design-recommendations)|
-| [Reference Implementation](docs/Reference%20Implementation.md)| | |
+| [Reference Implementation](docs/scenario1/Reference%20Implementation.md)| | |
 
 ## Next Steps to implement the Integration Services Landing Zone Accelerator
 
