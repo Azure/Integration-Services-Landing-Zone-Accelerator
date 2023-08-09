@@ -25,12 +25,12 @@ button.
 You can deploy them all (with a User Interface to enter details)
 using this Deploy to Azure button below:  
   
-[<img src="./media/image8.png" style="width:1.73958in;height:0.35417in"
+[<img src="../media/image8.png" style="width:1.73958in;height:0.35417in"
 alt="Image is a button that, when clicked, starts a Deploy to Azure process to deploy the recommended enterprise templates to Azure." />](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FIntegration-Services-Landing-Zone-Accelerator%2Fmain%2Fsrc%2Finfra%2Fscenario1%2Fias.template.json)
 
 The reference implementation consists of the following resources:
 
-<img src="./media/image9.png" style="width:5in;height:3.73958in"
+<img src="../media/image9.png" style="width:5in;height:3.73958in"
 alt="This diagram shows the resources that are deployed as part of the Deploy to Azure template, and which ones are in a Virtual Network. " />
 
 The ARM templates deploy the following resources:
@@ -67,7 +67,7 @@ The ARM templates deploy the following resources:
 
   - Creates Private Endpoint into VNet
 
-  - Sets “Allow trusted Microsoft services to bypass this firewall” to
+  - Sets “Allow trusted Microsoft services to bypass this firewall” to
     true
 
 - App Service Plans
