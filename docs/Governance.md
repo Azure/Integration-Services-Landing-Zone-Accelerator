@@ -7,7 +7,7 @@ applications, this may be a manual process; for larger applications,
 automation may be essential. Azure contains several offerings designed
 to make the compliance and governance process easier.
 
-Please note that this section delas with the [Control
+Please note that this section deals with the [Control
 Plane](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/control-plane-and-data-plane)
 only i.e., how we create, manage, and configure the resources in Azure
 (generally via the *Azure Resource Manager*). This section does not deal
